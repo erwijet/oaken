@@ -2,7 +2,14 @@
 
 export type Procedures = {
     queries: 
-        { key: "me", input: string, result: string },
-    mutations: never,
+        { key: "getTeams", input: never, result: Team[] },
+    mutations: 
+        { key: "simulate", input: Match, result: LedgerEntry },
     subscriptions: never
 };
+
+export type LedgerEntry = { match_id: number; home_score: number; away_score: number }
+
+export type Team = { id: number; name: string; skill: number }
+
+export type Match = { id: number; wk_no: number; season_id: number; home_team_id: number; away_team_id: number }

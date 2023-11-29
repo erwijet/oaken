@@ -1754,9 +1754,11 @@ name = "oaken"
 version = "0.0.0"
 dependencies = [
  "parking_lot",
+ "rand 0.8.5",
  "rspc",
  "serde",
  "serde_json",
+ "specta",
  "tauri",
  "tauri-build",
  "tokio",
