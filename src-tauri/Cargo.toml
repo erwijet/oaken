@@ -1,6 +1,6 @@
 [package]
-name = "oaken"
-version = "0.0.0"
+name = "Oaken"
+version = "0.0.2-alpha"
 description = "A Tauri App"
 authors = ["you"]
 license = ""
@@ -13,7 +13,7 @@ edition = "2021"
 tauri-build = { version = "1.5", features = [] }
 
 [dependencies]
-tauri = { version = "1.5", features = [ "dialog-all", "shell-open"] }
+tauri = { version = "1.5", features = [ "path-all", "fs-all", "dialog-all", "shell-open"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 parking_lot = "0.12.1"
@@ -21,6 +21,11 @@ rspc = { version = "0.1.3", features = ["tauri"] }
 tokio = { version = "1.34.0", features = ["rt"] }
 specta = "1.0.5"
 rand = "0.8.5"
+sqlx = { version = "0.7.3", features = ["runtime-tokio", "tls-native-tls", "sqlite", "macros"] }
+random_word = { version = "0.4.1", features = ["en"] }
+toml = "0.8.8"
+lazy_static = "1.4.0"
+async-once-cell = "0.5.3"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

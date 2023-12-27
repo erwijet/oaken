@@ -1,8 +1,10 @@
+use std::{borrow::BorrowMut, fmt::format};
+
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
-#[derive(Serialize, Type, Clone)]
+#[derive(Serialize, Type, Clone, Debug, sqlx::FromRow)]
 pub struct Team {
     pub id: i32,
     pub name: String,

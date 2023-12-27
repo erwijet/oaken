@@ -6,12 +6,17 @@ import { useState } from "react";
 import { Button } from "@/lib/ui/button";
 import { maybe, isNone, isSome } from "@tsly/maybe";
 import { LedgerEntry, Team } from "./bindings";
+import { useEventHandler } from "./lib/events";
 
 function App() {
-  const { data: teams } = useQuery({
+  const { data: teams, refetch } = useQuery({
     queryKey: [],
     queryFn: () => api.query(["getTeams"]),
   });
+
+  useEventHandler("config_did_load", () => refetch());
+
+  console.log({ data: teams ?? "unloaded" });
 
   const [team1id, setTeam1id] = useState<number | undefined>();
   const [team2id, setTeam2id] = useState<number | undefined>();

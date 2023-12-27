@@ -8,8 +8,8 @@ export type Procedures = {
     subscriptions: never
 };
 
-export type LedgerEntry = { match_id: number; home_score: number; away_score: number }
-
 export type Team = { id: number; name: string; skill: number }
 
 export type Match = { id: number; wk_no: number; season_id: number; home_team_id: number; away_team_id: number }
+
+export type LedgerEntry = { match_id: number; home_score: number; away_score: number }
