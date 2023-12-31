@@ -1,4 +1,6 @@
-use tauri::{Context, utils::assets::EmbeddedAssets, Menu, Submenu, AboutMetadata, MenuItem, CustomMenuItem};
+use tauri::{
+    utils::assets::EmbeddedAssets, AboutMetadata, Context, CustomMenuItem, Menu, MenuItem, Submenu,
+};
 
 pub fn build_menu(ctx: &Context<EmbeddedAssets>) -> Menu {
     let mut menu = Menu::new();
@@ -22,11 +24,11 @@ pub fn build_menu(ctx: &Context<EmbeddedAssets>) -> Menu {
         ));
     }
 
-    menu = menu.add_submenu(Submenu::new("File", {
+    menu = menu.add_submenu(Submenu::new("Game", {
         let mut menu = Menu::new();
 
-        menu = menu.add_item(CustomMenuItem::new("create_config", "Create Config File"));
-        menu = menu.add_item(CustomMenuItem::new("load_config", "Load Config File"));
+        menu = menu.add_item(CustomMenuItem::new("restart_game", "Restart"));
+        menu = menu.add_item(CustomMenuItem::new("next_week", "Next Week"));
 
         menu = menu.add_native_item(MenuItem::Separator);
 

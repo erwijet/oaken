@@ -1,33 +1,37 @@
-use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
 
-use crate::util::Capitalize;
+use crate::util::{Capitalize, PresentError};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct TeamConfig {
-    pub skill_level: i32,
+    pub teams: Vec<TeamConfigItem>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct SessionConfig {
-    pub teams: HashMap<String, TeamConfig>,
+#[derive(Serialize, Deserialize)]
+pub struct TeamConfigItem {
+    pub name: String,
+    pub skill: i32,
 }
 
-impl Default for SessionConfig {
+impl Default for TeamConfig {
     fn default() -> Self {
-        let mut teams = HashMap::new();
-
-        for skill_level in 1..10 {
-            teams.insert(
-                format!(
+        let teams: Vec<TeamConfigItem> = (1..=10)
+            .map(|skill| TeamConfigItem {
+                name: format!(
                     "Team {}",
                     random_word::gen(random_word::Lang::En).capitalize()
                 ),
-                TeamConfig { skill_level },
-            );
-        }
+                skill,
+            })
+            .collect();
 
         Self { teams }
+    }
+}
+
+impl TryFrom<TeamConfig> for String {
+    type Error = toml::ser::Error;
+    fn try_from(value: TeamConfig) -> Result<Self, Self::Error> {
+        toml::to_string_pretty(&value)
     }
 }

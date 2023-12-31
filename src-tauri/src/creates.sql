@@ -1,27 +1,39 @@
+-- master table
+CREATE TABLE ctrl (
+    schema_ver INTEGER NOT NULL,
+    year INTEGER NOT NULL,
+    wk_no INTEGER NOT NULL
+);
+
 -- teams table
-CREATE TABLE IF NOT EXISTS teams (
+CREATE TABLE teams (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     skill INTEGER NOT NULL
 );
 
 -- matches table
-CREATE TABLE IF NOT EXISTS matches (
+CREATE TABLE matchups (
     id INTEGER PRIMARY KEY,
     wk_no INTEGER NOT NULL,
     season_id INTEGER NOT NULL,
     home_team_id INTEGER NOT NULL,
     away_team_id INTEGER NOT NULL,
+    home_team_score INTEGER,
+    away_team_score INTEGER,
+    schedule_id INTEGER,
 
     FOREIGN KEY (home_team_id) REFERENCES teams (id),
-    FOREIGN KEY (away_team_id) REFERENCES teams (id)
+    FOREIGN KEY (away_team_id) REFERENCES teams (id),
+    FOREIGN KEY (schedule_id) REFERENCES schedules (id)
 );
 
--- ledger_entries table
-CREATE TABLE IF NOT EXISTS ledger_entries (
-    match_id INTEGER NOT NULL,
-    home_score INTEGER NOT NULL,
-    away_score INTEGER NOT NULL,
-
-    FOREIGN KEY (match_id) REFERENCES matches (id)
+-- schedules table
+CREATE TABLE schedules (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    year INTEGER NOT NULL UNIQUE
 );
+
+--
+
+INSERT INTO ctrl (schema_ver, year, wk_no) VALUES ($1, 2023, 1);

@@ -1,7 +1,7 @@
 import { listen } from "@tauri-apps/api/event";
 import { useEffect } from "react";
 
-type OakenEvent = "config_did_load";
+type OakenEvent = "game_did_restart" | "week_did_advance";
 
 export function useEventHandler(evtId: OakenEvent, handler: () => void) {
   useEffect(() => {

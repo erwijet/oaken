@@ -2,14 +2,26 @@
 
 export type Procedures = {
     queries: 
+        { key: "getGameState", input: never, result: GameState } | 
+        { key: "getMatchupsByWeek", input: GetMatchupsByWeekArgs, result: Matchup[] } | 
+        { key: "getSchedule", input: number, result: Schedule | null } | 
+        { key: "getSchedules", input: never, result: Schedule[] } | 
+        { key: "getStandings", input: number, result: Standing[] } | 
+        { key: "getTeamMatchups", input: number, result: Matchup[] } | 
         { key: "getTeams", input: never, result: Team[] },
     mutations: 
-        { key: "simulate", input: Match, result: LedgerEntry },
+        { key: "advanceWeek", input: never, result: null },
     subscriptions: never
 };
 
+export type Standing = { teamId: number; teamName: string; wins: number; losses: number; draws: number; pointsFor: number; pointsAgainst: number; streak: number; winPercent: number }
+
+export type Schedule = { id: number; year: number; matchups: Matchup[] }
+
+export type Matchup = { id: number; wkNo: number; homeTeamId: number; awayTeamId: number; homeTeamScore: number | null; awayTeamScore: number | null }
+
 export type Team = { id: number; name: string; skill: number }
 
-export type Match = { id: number; wk_no: number; season_id: number; home_team_id: number; away_team_id: number }
+export type GameState = { schema_ver: number; year: number; wk_no: number }
 
-export type LedgerEntry = { match_id: number; home_score: number; away_score: number }
+export type GetMatchupsByWeekArgs = { year: number; wkNo: number }
