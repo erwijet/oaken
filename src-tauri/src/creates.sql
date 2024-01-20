@@ -5,11 +5,30 @@ CREATE TABLE ctrl (
     wk_no INTEGER NOT NULL
 );
 
--- teams table
+CREATE TABLE leagues (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    abbr TEXT NOT NULL 
+);
+
+CREATE TABLE tiers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    rank INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    league_id INTEGER NOT NULL,
+
+    FOREIGN KEY (league_id) REFERENCES leagues (id),
+    CONSTRAINT unique_name_per_league UNIQUE (name, league_id)
+);
+
 CREATE TABLE teams (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    skill INTEGER NOT NULL
+    name TEXT NOT NULL UNIQUE,
+    skill INTEGER NOT NULL,
+    league_id INTEGER NOT NULL,
+    tier_id INTEGER NOT NULL,
+
+    FOREIGN KEY (tier_id) REFERENCES tiers (id)
 );
 
 -- matches table
@@ -31,7 +50,11 @@ CREATE TABLE matchups (
 -- schedules table
 CREATE TABLE schedules (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    year INTEGER NOT NULL UNIQUE
+    tier_id INTEGER NOT NULL,
+    league_id INTEGER NOT NULL,
+    year INTEGER NOT NULL,
+
+    CONSTRAINT unique_year_per_tier UNIQUE (year, tier_id)
 );
 
 --

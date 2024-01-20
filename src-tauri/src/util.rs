@@ -1,9 +1,8 @@
 use std::ops::Deref;
 
-use sqlx::pool;
 use tauri::api::dialog;
 
-use crate::POOL;
+use crate::shared::pool::get_pool;
 
 pub trait Capitalize {
     fn capitalize(self) -> String;
@@ -52,7 +51,7 @@ impl Deref for LastInsertRowId {
 
 impl LastInsertRowId {
     pub async fn get() -> Self {
-        let pool = POOL.get().unwrap();
+        let pool = get_pool();
         sqlx::query_as("SELECT last_insert_rowid();")
             .fetch_one(pool.deref())
             .await

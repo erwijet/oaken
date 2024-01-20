@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
-use crate::{sql_args, POOL};
+use crate::{shared::pool::get_pool, sql_args};
 
 #[derive(Serialize, Deserialize, sqlx::FromRow, Type)]
 pub struct GameState {
@@ -12,8 +12,7 @@ pub struct GameState {
 
 impl GameState {
     pub async fn get() -> Self {
-        POOL.get()
-            .unwrap()
+        get_pool()
             .query("SELECT * FROM ctrl;")
             .await
             .into_iter()
@@ -22,7 +21,7 @@ impl GameState {
     }
 
     pub async fn set_week(wk: i32) {
-        POOL.get().unwrap().exec_with(
+        get_pool().exec_with(
             r#"
             UPDATE ctrl
             SET wk_no = $1;

@@ -2,7 +2,7 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
-use crate::{inline_async, sql_args, POOL};
+use crate::{inline_async, shared::pool::get_pool, sql_args};
 
 use super::team::Team;
 
@@ -20,14 +20,9 @@ pub struct Matchup {
 
 impl Matchup {
     pub async fn create(
-        home_team_id: i32,
-        away_team_id: i32,
-        wk_no: i32,
-        season_id: i32,
-        schedule_id: i32,
+        home_team_id: i32, away_team_id: i32, wk_no: i32, season_id: i32, schedule_id: i32,
     ) -> Self {
-        POOL.get()
-            .unwrap()
+        get_pool()
             .query_with(
                 r#"
                 INSERT INTO matchups (wk_no, season_id, home_team_id, away_team_id, schedule_id)
@@ -43,8 +38,7 @@ impl Matchup {
     }
 
     pub async fn get_with_teamid(team_id: &i32) -> Vec<Self> {
-        POOL.get()
-            .unwrap()
+        get_pool()
             .query_with(
                 r#"
                 SELECT * FROM matchups
@@ -55,10 +49,14 @@ impl Matchup {
             .await
     }
 
+    pub async fn get_all_for_schedule(schedule_id: i32) -> Vec<Self> {
+        get_pool().query_with("SELECT * FROM matchups WHERE schedule_id = $1;", sql_args![schedule_id]).await
+    }
+
     /// Computes the scores for this matchup refetching and returning the result once done
     pub fn compute_scores(&self) {
         let mut rng = rand::thread_rng();
-        let pool = POOL.get().unwrap();
+        let pool = get_pool();
 
         inline_async! {{
             let home_team = Team::get(&self.home_team_id).await;

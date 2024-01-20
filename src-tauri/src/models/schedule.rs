@@ -1,39 +1,42 @@
 use std::{collections::HashSet, ops::Deref};
 
 use ::futures::future::join_all;
-use futures::task::ArcWake;
 use itertools::{iproduct, Itertools};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tap::Pipe;
 
-use crate::{sql_args, util::LastInsertRowId, POOL};
+use crate::{shared::pool::get_pool, sql_args, util::LastInsertRowId};
 
-use super::{matchup::Matchup, team::Team};
+use super::{matchup::Matchup, team::Team, tier};
 
 #[derive(Serialize, Deserialize, Type, Clone, Debug)]
 pub struct Schedule {
     pub id: i32,
     pub year: i32,
+    tier_id: i32,
+    league_id: i32,
     pub matchups: Vec<Matchup>,
 }
 
 #[derive(sqlx::FromRow)]
 pub struct ScheduleRow {
     pub id: i32,
+    pub tier_id: i32,
+    pub league_id: i32,
     pub year: i32,
 }
 
 impl Schedule {
-    pub async fn create_empty(year: i32) -> Self {
-        let pool = POOL.get().unwrap();
+    pub async fn create_empty(year: i32, tier_id: i32, league_id: i32) -> Self {
+        let pool = get_pool();
         let row: ScheduleRow = pool
             .query_with(
                 r#"
-            INSERT INTO schedules (year) VALUES ($1);
+            INSERT INTO schedules (year, tier_id, league_id) VALUES ($1, $2, $3);
             SELECT * FROM schedules WHERE id = last_insert_rowid();
             "#,
-                sql_args![year],
+                sql_args![year, tier_id, league_id],
             )
             .await
             .into_iter()
@@ -42,52 +45,77 @@ impl Schedule {
 
         Self {
             year: row.year,
+            league_id: row.league_id,
+            tier_id: row.tier_id,
             id: row.id,
             matchups: vec![],
         }
     }
 
     pub async fn get_all() -> Vec<Self> {
-        let pool = POOL.get().unwrap();
+        let pool = get_pool();
         let rows: Vec<ScheduleRow> = pool.query("SELECT * FROM schedules;").await;
 
-        join_all(rows.into_iter().map(|ScheduleRow { id, year }| async move {
-            let matchups: Vec<Matchup> = pool
-                .query_with("SELECT * FROM matchups WHERE schedule_id = $1;", sql_args![id])
-                .await;
+        join_all(rows.into_iter().map(
+            |ScheduleRow {
+                 id,
+                 year,
+                 league_id,
+                 tier_id,
+             }| async move {
+                let matchups: Vec<Matchup> = pool
+                    .query_with(
+                        "SELECT * FROM matchups WHERE schedule_id = $1;",
+                        sql_args![id],
+                    )
+                    .await;
 
-            Schedule { matchups, year, id }
-        }))
+                Schedule {
+                    matchups,
+                    year,
+                    id,
+                    league_id,
+                    tier_id,
+                }
+            },
+        ))
         .await
     }
 
-    pub async fn get_by_year(year: &i32) -> Option<Self> {
-        let pool = POOL.get().unwrap();
-        let ScheduleRow { id, year } = pool
+    pub async fn get_all_by_year(year: &i32) -> Vec<Self> {
+        let pool = get_pool();
+        let schedule_rows: Vec<ScheduleRow> = pool
             .query_with("SELECT * FROM schedules WHERE year = $1", sql_args![year])
-            .await
-            .into_iter()
-            .nth(0)?;
-
-        let matchups: Vec<Matchup> = pool
-            .query_with(
-                r#"SELECT * FROM matchups WHERE schedule_id = $1;"#,
-                sql_args![id],
-            )
             .await;
 
-        Some(Schedule { id, year, matchups })
+        schedule_rows
+            .into_iter()
+            .map(|row| async move {
+                Schedule {
+                    id: row.id,
+                    league_id: row.league_id,
+                    tier_id: row.tier_id,
+                    year: row.year,
+                    matchups: Matchup::get_all_for_schedule(row.id).await,
+                }
+            })
+            .pipe(|it| join_all(it))
+            .await
     }
 
-    pub async fn create_round_robin(year: i32) -> Self {
-        let team_ids: Vec<i32> = Team::get_all().await.iter().map(|team| team.id).collect();
+    pub async fn create_round_robin(league_id: i32, tier_id: i32, year: i32) -> Self {
+        let team_ids = Team::get_by_division(league_id, tier_id)
+            .await
+            .into_iter()
+            .map(|team| team.id)
+            .collect_vec();
         let num_teams = team_ids.len();
 
         if num_teams % 2 != 0 {
             panic!("team count is not even");
         }
 
-        let mut schedule = Schedule::create_empty(year).await;
+        let mut schedule = Schedule::create_empty(year, tier_id, league_id).await;
 
         let wks = Scheduler::round_robin(team_ids);
 

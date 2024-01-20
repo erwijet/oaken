@@ -3,9 +3,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use sqlx::prelude::*;
 
-use crate::POOL;
-
-use super::team::Team;
+use crate::{models::team::Team, shared::pool::get_pool};
 
 #[derive(Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
@@ -34,7 +32,7 @@ struct StandingRow {
 
 impl Standing {
     pub async fn get(year: &i32) -> Vec<Self> {
-        let pool = POOL.get().unwrap();
+        let pool = get_pool();
         let rows: Vec<StandingRow> = pool.query(r#"
             SELECT
                 teams.id AS team_id,
