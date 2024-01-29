@@ -1,14 +1,14 @@
-use std::{collections::HashSet, ops::Deref};
+
 
 use ::futures::future::join_all;
-use itertools::{iproduct, Itertools};
+use itertools::{Itertools};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tap::Pipe;
 
 use crate::{shared::pool::get_pool, sql_args};
 
-use super::{matchup::Matchup, team::Team, tier};
+use super::{matchup::Matchup, team::Team};
 
 #[derive(Serialize, Deserialize, Type, Clone, Debug)]
 pub struct Schedule {

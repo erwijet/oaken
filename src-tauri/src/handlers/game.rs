@@ -1,17 +1,17 @@
-use std::{fs, path::Path, pin::Pin, sync::Arc};
+use std::{fs, path::Path};
 
 use futures::future::join_all;
 use itertools::Itertools;
-use rand::{thread_rng, Rng};
+use rand::{Rng};
 use tap::Pipe;
-use tauri::{window, Manager};
+
 
 use crate::{
     conf::{LeagueConfig, LeagueConfigItem, TeamConfig, TeamConfigItem, TierConfigItem},
     models::{game::GameState, league::League, schedule::Schedule, team::Team, tier::Tier},
     paths::{get_leagues_config_path, get_team_config_path},
     shared::pool::get_pool,
-    util::{Capitalize, PresentError},
+    util::{PresentError},
 };
 
 pub struct GameHandlers;

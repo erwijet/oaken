@@ -1,9 +1,9 @@
-use std::{ops::Deref, sync::OnceLock};
 
-use rand::rngs::ThreadRng;
+
+
 use tauri::api::dialog;
 
-use crate::shared::pool::get_pool;
+
 
 pub trait Capitalize {
     fn capitalize(self) -> String;

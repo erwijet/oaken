@@ -1,10 +1,10 @@
 [package]
-name = "Oaken"
-version = "0.0.2-alpha"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
+name = "oaken"
+version = "0.0.0"
+description = "A game for simulating sports leagues"
+authors = ["Tyler Holewinski <tyler@holewinski.dev>"]
+license = "MIT"
+repository = "https://github.com/erwijet/oaken"
 edition = "2021"
 
 [lib]

@@ -7,7 +7,7 @@
   },
   "package": {
     "productName": "Oaken",
-    "version": "0.0.2-alpha"
+    "version": "../package.json"
   },
   "tauri": {
     "allowlist": {

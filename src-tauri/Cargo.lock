@@ -9,29 +9,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fe438c63458706e03479442743baae6c88256498e6431708f6dfc520a26515d3"
 
 [[package]]
-name = "Oaken"
-version = "0.0.2-alpha"
-dependencies = [
- "async-once-cell",
- "futures",
- "itertools 0.12.0",
- "lazy_static",
- "parking_lot",
- "rand 0.8.5",
- "random_word",
- "rspc",
- "serde",
- "serde_json",
- "specta",
- "sqlx",
- "tap",
- "tauri",
- "tauri-build",
- "tokio",
- "toml 0.8.8",
-]
-
-[[package]]
 name = "addr2line"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2088,6 +2065,29 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "oaken"
+version = "0.0.0"
+dependencies = [
+ "async-once-cell",
+ "futures",
+ "itertools 0.12.0",
+ "lazy_static",
+ "parking_lot",
+ "rand 0.8.5",
+ "random_word",
+ "rspc",
+ "serde",
+ "serde_json",
+ "specta",
+ "sqlx",
+ "tap",
+ "tauri",
+ "tauri-build",
+ "tokio",
+ "toml 0.8.8",
 ]
 
 [[package]]

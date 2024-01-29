@@ -1,10 +1,10 @@
 use futures::future::join_all;
-use futures::Future;
+
 use itertools::FoldWhile::*;
 use itertools::Itertools;
 use serde::Serialize;
 use specta::Type;
-use sqlx::{pool, FromRow};
+use sqlx::{FromRow};
 use tap::Pipe;
 
 use crate::{shared::pool::get_pool, sql_args};

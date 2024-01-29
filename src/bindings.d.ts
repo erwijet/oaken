@@ -24,9 +24,9 @@ export type Standing = { teamId: number; leagueId: number; tierId: number; teamN
 
 export type Matchup = { id: number; wkNo: number; homeTeamId: number; awayTeamId: number; homeTeamScore: number | null; awayTeamScore: number | null }
 
-export type GetMatchupsByWeekArgs = { year: number; wkNo: number }
-
 export type League = { id: number; name: string; abbr: string }
+
+export type GetMatchupsByWeekArgs = { year: number; wkNo: number }
 
 export type Tier = { id: number; name: string; rank: number; leagueId: number }
 

@@ -1,21 +1,21 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use futures::{future::join_all, FutureExt};
+
 use oaken::{
-    conf::{LeagueConfig, TeamConfig, TeamConfigItem},
+    conf::{LeagueConfig},
     handlers::game::GameHandlers,
     inline_async,
     menu::build_menu,
     models::{
         game::GameState,
-        league::{self, League, LeagueInfo},
+        league::{LeagueInfo},
         matchup::Matchup,
         schedule::Schedule,
         standings::Standing,
         team::{Team, TeamInfo},
     },
-    paths::{get_leagues_config_path, get_team_config_path},
+    paths::{get_leagues_config_path},
     shared::{
         emit::EmitMsg,
         pool::{get_pool, init_pool},
@@ -24,8 +24,8 @@ use oaken::{
     sql_args,
 };
 
-use itertools::Itertools;
-use rand::Rng;
+
+
 use rspc::Router;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -33,10 +33,10 @@ use specta::{ts::ExportConfiguration, Type};
 use std::{
     fs,
     path::Path,
-    sync::{Arc, OnceLock},
+    sync::{Arc},
 };
-use tap::Pipe;
-use tauri::{AppHandle, Manager};
+
+use tauri::{Manager};
 
 #[derive(Serialize, Type)]
 struct AppState {
