@@ -8,11 +8,18 @@ import { ArrowLeft, AtSign } from "lucide-react";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "./lib/ui/table";
 import { maybe } from "@tsly/maybe";
 import { iter } from "@tsly/iter";
-import { Matchup } from "./bindings";
+import { Matchup, TeamInfo } from "./bindings";
+import { TeamSelect } from "@/lib/prefab/TeamSelect";
+import { NextWeekButton } from "@/lib/prefab/NextWeekButton";
 
 function TeamPage() {
   const id: string = useParams()["id"] ?? err("missing :id");
   const nav = useNavigate();
+
+  const { data: game } = useQuery({
+    queryKey: ["getGameState"],
+    queryFn: () => api.query(["getGameState"]),
+  });
 
   const { data: matchups } = useQuery({
     queryKey: ["getTeamMatchups", id],
@@ -20,27 +27,41 @@ function TeamPage() {
   });
 
   const { data: teams } = useQuery({
-    queryKey: ["getTeams"],
-    queryFn: () => api.query(["getTeams"]),
+    queryKey: ["getTeamInfos"],
+    queryFn: () => api.query(["getTeamInfos"]),
   });
 
-  const { data: game } = useQuery({
-    queryKey: ["getGameState"],
-    queryFn: () => api.query(["getGameState"]),
-  });
-
-  const team = teams?.find((team) => team.id == parseInt(id));
+  function getTeamById(id: number | string): TeamInfo | undefined {
+    return teams?.find((it) => it.id == parseInt(id.toString()));
+  }
 
   return (
     <div className="m-4">
-      <div className="flex gap-2 items-center my-4">
-        <Button variant={"ghost"} size={"icon"} onClick={() => nav(-1)}>
-          <ArrowLeft />
-        </Button>
-        <h1 className="text-4xl font-extrabold tracking-tight">{team?.name}</h1>
-        <span>
-          <Badge>Skill: {team?.skill}</Badge>
-        </span>
+      <div className="flex my-4 justify-between">
+        <div className="flex gap-2 items-center">
+          <Button variant={"ghost"} size={"icon"} onClick={() => nav(-1)}>
+            <ArrowLeft />
+          </Button>
+
+          <div className="flex flex-col">
+            <h1 className="text-4xl font-extrabold tracking-tight">{getTeamById(id)?.name}</h1>
+
+            <div className="flex gap-2 items-center">
+              <span>
+                <Badge>
+                  {getTeamById(id)?.league.name} // {getTeamById(id)?.tier.name}
+                </Badge>
+              </span>
+              <span>
+                <Badge variant={"secondary"}>Skill: {getTeamById(id)?.skill}</Badge>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <TeamSelect />
+          <NextWeekButton />
+        </div>
       </div>
 
       <hr />
@@ -60,14 +81,14 @@ function TeamPage() {
               <TableRow>
                 <TableCell>{matchup.wkNo}</TableCell>
                 <TableCell>
-                  {maybe(teams?.find((team) => team.id == matchup.awayTeamId))?.take((team) => (
+                  {maybe(getTeamById(matchup.awayTeamId))?.take((team) => (
                     <Button variant={"link"} onClick={() => nav("/team/" + team.id)}>
                       {team.name}
                     </Button>
                   ))}
                 </TableCell>
                 <TableCell>
-                  {maybe(teams?.find((team) => team.id == matchup.homeTeamId))?.take((team) => (
+                  {maybe(getTeamById(matchup.homeTeamId))?.take((team) => (
                     <Button variant={"link"} onClick={() => nav("/team/" + team.id)}>
                       <AtSign className="w-4 h-4 mr-2" />
                       {team.name}
@@ -75,17 +96,16 @@ function TeamPage() {
                   ))}
                 </TableCell>
                 <TableCell>
-                  {maybe(matchup.homeTeamScore)?.take(
-                    (homeTeamScore) =>
-                      maybe(matchup.awayTeamScore)?.take((awayTeamScore) => {
-                        const scores = `${awayTeamScore} - ${homeTeamScore}`;
+                  {maybe(matchup.homeTeamScore)?.take((homeTeamScore) =>
+                    maybe(matchup.awayTeamScore)?.take((awayTeamScore) => {
+                      const scores = `${awayTeamScore} - ${homeTeamScore}`;
 
-                        if (homeTeamScore > awayTeamScore && matchup.homeTeamId == parseInt(id)) return `Win (${scores})`;
-                        if (homeTeamScore < awayTeamScore && matchup.awayTeamId == parseInt(id)) return `Win (${scores})`;
-                        if (homeTeamScore == awayTeamScore) return `Draw (${scores})`;
+                      if (homeTeamScore > awayTeamScore && matchup.homeTeamId == parseInt(id)) return `Win (${scores})`;
+                      if (homeTeamScore < awayTeamScore && matchup.awayTeamId == parseInt(id)) return `Win (${scores})`;
+                      if (homeTeamScore == awayTeamScore) return `Draw (${scores})`;
 
-                        return `Loss (${scores})`;
-                      }),
+                      return `Loss (${scores})`;
+                    }),
                   ) ?? "-"}
                 </TableCell>
               </TableRow>
@@ -98,12 +118,11 @@ function TeamPage() {
                 {iter(matchups ?? [])
                   .filterMap((match) => {
                     return (
-                      maybe(match.homeTeamScore)?.take(
-                        (homeTeamScore) =>
-                          maybe(match.awayTeamScore)?.take((awayTeamScore) => {
-                            if (homeTeamScore == awayTeamScore) return null; // skip
-                            return [match, homeTeamScore, awayTeamScore] as readonly [match: Matchup, homeScore: number, awayScore: number];
-                          }),
+                      maybe(match.homeTeamScore)?.take((homeTeamScore) =>
+                        maybe(match.awayTeamScore)?.take((awayTeamScore) => {
+                          if (homeTeamScore == awayTeamScore) return null; // skip
+                          return [match, homeTeamScore, awayTeamScore] as readonly [match: Matchup, homeScore: number, awayScore: number];
+                        }),
                       ) ?? null
                     );
                   })

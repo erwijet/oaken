@@ -1,9 +1,8 @@
-use std::{fs, path::Path};
+use std::{fs, path::Path, pin::Pin, sync::Arc};
 
 use futures::future::join_all;
 use itertools::Itertools;
-use rand::Rng;
-use serde_json::json;
+use rand::{thread_rng, Rng};
 use tap::Pipe;
 use tauri::{window, Manager};
 
@@ -18,114 +17,106 @@ use crate::{
 pub struct GameHandlers;
 
 impl GameHandlers {
-    pub fn restart_game(window: &window::Window) {
-        tokio::task::block_in_place(|| {
-            tauri::async_runtime::block_on(async {
-                let pool = get_pool();
+    pub async fn restart_game() {
+        let pool = get_pool();
 
-                pool.exec(
-                    "
+        pool.exec(
+            "
                     DELETE FROM matchups;
                     DELETE FROM schedules;
                     DELETE FROM teams;
                     DELETE from tiers;
                     DELETE from leagues;",
-                );
+        );
 
-                let league_config_path = get_leagues_config_path(&window.app_handle());
+        let league_config_path = get_leagues_config_path();
 
-                let LeagueConfig { leagues, tiers } = fs::read_to_string(league_config_path)
-                    .present_err()
-                    .unwrap()
-                    .pipe(|s| toml::from_str(&s).present_err().unwrap());
+        let LeagueConfig { leagues, tiers } = fs::read_to_string(league_config_path)
+            .present_err()
+            .unwrap()
+            .pipe(|s| toml::from_str(&s).present_err().unwrap());
 
-                for LeagueConfigItem { name, abbr } in leagues {
-                    League::create(name, abbr).await;
+        for LeagueConfigItem { name, abbr } in leagues {
+            League::create(name, abbr).await;
+        }
+
+        let mut rank = 1;
+        for TierConfigItem { name, league } in tiers {
+            Tier::create(name, rank, League::get_by_name(league).await.id).await;
+            rank += 1;
+
+            if rank > 4 {
+                rank = 1;
+            }
+        }
+
+        let team_config_path = get_team_config_path();
+
+        if !team_config_path.exists() {
+            async fn generate_team_config(each: League) -> Vec<TeamConfigItem> {
+                let skill = rand::thread_rng().gen_range(1..=100);
+                let tiers = each.get_tiers().await;
+
+                tiers
+                    .iter()
+                    .flat_map(|tier| {
+                        (b'a'..(b'a' + 16))
+                            .map(|chr| (chr as char).to_string())
+                            .map(|chr| TeamConfigItem {
+                                name: format!(
+                                    "{}{} {}",
+                                    each.abbr,
+                                    tier.rank,
+                                    chr.clone().to_ascii_uppercase()
+                                ),
+                                tier: tier.name.clone(),
+                                league: each.name.clone(),
+                                skill,
+                            })
+                            .collect_vec()
+                    })
+                    .collect_vec()
+            }
+
+            let config = League::get_all()
+                .await
+                .into_iter()
+                .map(|each| generate_team_config(each))
+                .pipe(|it| join_all(it))
+                .await
+                .into_iter()
+                .flat_map(|vals| vals)
+                .collect_vec()
+                .pipe(|teams| TeamConfig { teams });
+
+            fs::write::<&Path, String>(&team_config_path.as_path(), config.try_into().unwrap())
+                .unwrap()
+        }
+
+        if let Ok(TeamConfig { teams }) = fs::read_to_string(team_config_path)
+            .present_err()
+            .unwrap()
+            .pipe(|s| toml::from_str::<TeamConfig>(&s))
+        {
+            for team in teams {
+                let league = League::get_by_name(team.league).await;
+                Team::create(
+                    team.name,
+                    team.skill,
+                    Tier::get_by_name(team.tier, league.id).await.id,
+                    league.id,
+                )
+                .await;
+            }
+
+            for league in League::get_all().await {
+                for tier in league.get_tiers().await {
+                    Schedule::create_round_robin(league.id, tier.id, 2023).await;
                 }
+            }
 
-                let mut rank = 1;
-                for TierConfigItem { name, league } in tiers {
-                    Tier::create(name, rank, League::get_by_name(league).await.id).await;
-                    rank += 1;
-
-                    if rank > 4 {
-                        rank = 1;
-                    }
-                }
-
-                let team_config_path = get_team_config_path(&window.app_handle());
-
-                if !team_config_path.exists() {
-                    let mut rng = rand::thread_rng();
-
-                    let config = League::get_all()
-                        .await
-                        .into_iter()
-                        .map(|each| async { (each.get_tiers().await, each) })
-                        .pipe(|it| join_all(it))
-                        .await
-                        .into_iter()
-                        .flat_map(|(tiers, league)| {
-                            tiers
-                                .iter()
-                                .flat_map(|tier| {
-                                    (b'a'..(b'a' + 16))
-                                        .map(|chr| (chr as char).to_string())
-                                        .map(|chr| TeamConfigItem {
-                                            name: format!(
-                                                "{}{} {}",
-                                                league.abbr,
-                                                tier.rank,
-                                                chr.clone().capitalize()
-                                            ),
-                                            tier: tier.name.clone(),
-                                            league: league.name.clone(),
-                                            skill: rng.gen_range(0..100),
-                                        })
-                                        .collect_vec()
-                                })
-                                .collect_vec()
-                        })
-                        .collect_vec()
-                        .pipe(|teams| TeamConfig { teams });
-
-                    fs::write::<&Path, String>(
-                        &team_config_path.as_path(),
-                        config.try_into().unwrap(),
-                    )
-                    .unwrap()
-                }
-
-                if let Ok(TeamConfig { teams }) = fs::read_to_string(team_config_path)
-                    .present_err()
-                    .unwrap()
-                    .pipe(|s| toml::from_str::<TeamConfig>(&s))
-                {
-                    for team in teams {
-                        println!("Writing Team: {}", team.name);
-
-                        let league = League::get_by_name(team.league).await;
-                        Team::create(
-                            team.name,
-                            team.skill,
-                            Tier::get_by_name(team.tier, league.id).await.id,
-                            league.id,
-                        )
-                        .await;
-                    }
-
-                    for league in League::get_all().await {
-                        for tier in league.get_tiers().await {
-                            Schedule::create_round_robin(league.id, tier.id, 2023).await;
-                        }
-                    }
-
-                    GameState::set_week(1).await;
-
-                    window.emit("game_did_restart", json!({})).unwrap();
-                }
-            })
-        })
+            GameState::set_week(1).await;
+        }
     }
 
     pub async fn next_week() {

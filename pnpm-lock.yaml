@@ -1,9 +1,5 @@
 lockfileVersion: '6.0'
 
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
-
 dependencies:
   '@radix-ui/react-dialog':
     specifier: ^1.0.5
@@ -36,6 +32,12 @@ dependencies:
     specifier: ^1.2.2
     version: 1.2.2
   '@tsly/core':
+    specifier: ^1.1.0
+    version: 1.1.0
+  '@tsly/deep':
+    specifier: ^1.1.1
+    version: 1.1.1
+  '@tsly/hooks':
     specifier: ^1.1.0
     version: 1.1.0
   '@tsly/iter':
@@ -74,6 +76,9 @@ dependencies:
   tailwindcss-animate:
     specifier: ^1.0.7
     version: 1.0.7(tailwindcss@3.4.1)
+  zustand:
+    specifier: ^4.5.0
+    version: 4.5.0(@types/react@18.2.48)(react@18.2.0)
 
 devDependencies:
   '@tauri-apps/cli':
@@ -1535,6 +1540,18 @@ packages:
     resolution: {integrity: sha512-Ck2JY7qvk97Qokf48LGOKBWRBtFqeDNsx6EUk76C45u9g4JVx5IKZahPbvi50NQOD+XB4foIVEnXCv6jUZAcVQ==}
     dev: false
 
+  /@tsly/deep@1.1.1:
+    resolution: {integrity: sha512-hO/EhyaC7Tr8nEnbBdEnoasy7XImjZWmk+j+Wpq+GIrNqveYvUgRUhCcY4J3cFmdnXMES5YFUJsyCJxBSQucUQ==}
+    dependencies:
+      '@tsly/obj': 1.0.0
+    dev: false
+
+  /@tsly/hooks@1.1.0:
+    resolution: {integrity: sha512-ITTzHbI3g+myQcHnehNMdDb0hZyWU4JKWvUsUKiI/yxDu2ZGHZrC74/3Q7zGP20EJCkv0mRPgNaqgPlSMWtfOg==}
+    dependencies:
+      react: 18.2.0
+    dev: false
+
   /@tsly/iter@1.1.1:
     resolution: {integrity: sha512-7m6ygGl4TwnLMHLvpKefuZvmgLyHF7L5HJ4eqSoOrvEzLFCtr4LzO0fdTQc9gjWnW7x8YbwypG255QTBfzYjIg==}
     dependencies:
@@ -1544,6 +1561,10 @@ packages:
 
   /@tsly/maybe@1.2.0:
     resolution: {integrity: sha512-tFXYstrFh7jZj+xLrM/zzohuiVb5WUh6BaCyboMGzT88Kf1xWpc+inKMqqAsCw0kgvmzeszkEXJgCJE3RGi/4g==}
+    dev: false
+
+  /@tsly/obj@1.0.0:
+    resolution: {integrity: sha512-/tazPHJl+97nnpuHIGHG8Bavr5f7JnEwy18xEEetLqX7YkHU0Y6SF4jv4scKj0uM9r55t51yTamjmFv0A310Pw==}
     dev: false
 
   /@types/babel__core@7.20.5:
@@ -2601,6 +2622,14 @@ packages:
       tslib: 2.6.2
     dev: false
 
+  /use-sync-external-store@1.2.0(react@18.2.0):
+    resolution: {integrity: sha512-eEgnFxGQ1Ife9bzYs6VLi8/4X6CObHMw9Qr9tPY43iKwsPw8xE8+EFsf/2cFZ5S3esXgpWgtSCtLNS41F+sKPA==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      react: 18.2.0
+    dev: false
+
   /util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
@@ -2670,3 +2699,27 @@ packages:
   /yaml@2.3.4:
     resolution: {integrity: sha512-8aAvwVUSHpfEqTQ4w/KMlf3HcRdt50E5ODIQJBw1fQ5RL34xabzxtUlzTXVqc4rkZsPbvrXKWnABCD7kWSmocA==}
     engines: {node: '>= 14'}
+
+  /zustand@4.5.0(@types/react@18.2.48)(react@18.2.0):
+    resolution: {integrity: sha512-zlVFqS5TQ21nwijjhJlx4f9iGrXSL0o/+Dpy4txAP22miJ8Ti6c1Ol1RLNN98BMib83lmDH/2KmLwaNXpjrO1A==}
+    engines: {node: '>=12.7.0'}
+    peerDependencies:
+      '@types/react': '>=16.8'
+      immer: '>=9.0.6'
+      react: '>=16.8'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      immer:
+        optional: true
+      react:
+        optional: true
+    dependencies:
+      '@types/react': 18.2.48
+      react: 18.2.0
+      use-sync-external-store: 1.2.0(react@18.2.0)
+    dev: false
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false

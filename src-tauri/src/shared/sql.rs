@@ -9,6 +9,7 @@ use crate::{models::game::GameState, sql_args};
 
 pub const SCHEMA_VER: i32 = 16;
 
+#[derive(Debug)]
 pub struct SqlitePoolWrapper(SqlitePool);
 
 impl SqlitePoolWrapper {

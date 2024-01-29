@@ -1,6 +1,6 @@
-use std::fmt::format;
-
+use futures::future::join_all;
 use serde::{Deserialize, Serialize};
+use tap::Pipe;
 
 use crate::{shared::pool::get_pool, sql_args};
 
@@ -58,5 +58,37 @@ impl League {
                 sql_args![self.id],
             )
             .await as Vec<Tier>
+    }
+}
+
+#[derive(Serialize, specta::Type)]
+pub struct LeagueInfo {
+    pub id: i32,
+    pub name: String,
+    pub abbr: String,
+    pub tiers: Vec<Tier>,
+}
+
+impl LeagueInfo {
+    pub async fn get(league_id: i32) -> LeagueInfo {
+        let league = League::get(&league_id).await;
+        let tiers = league.get_tiers().await;
+        let League { id, name, abbr } = league;
+
+        Self {
+            id,
+            name,
+            abbr,
+            tiers,
+        }
+    }
+
+    pub async fn get_all() -> Vec<Self> {
+        League::get_all()
+            .await
+            .into_iter()
+            .map(|league| async move { Self::get(league.id).await })
+            .pipe(|it| join_all(it))
+            .await
     }
 }

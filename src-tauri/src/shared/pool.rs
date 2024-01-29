@@ -9,6 +9,7 @@ pub fn get_pool() -> &'static SqlitePoolWrapper {
     POOL.get().unwrap()
 }
 
-pub async fn init_pool(app: &App) -> &'static SqlitePoolWrapper {
-    POOL.get_or_init(|| establish_connection(app)).await
+pub async fn init_pool(app: &App) {
+    POOL.set(establish_connection(app).await)
+        .expect("failed to init sqlite pool");
 }

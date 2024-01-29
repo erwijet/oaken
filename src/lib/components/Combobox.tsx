@@ -37,7 +37,16 @@ export function Combobox<T>(props: ComboboxProps<T>) {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
-        <Command filter={(idxStr, query) => props.intoQueryable(props.items.at(parseInt(idxStr))!).includes(query) ? 1 : 0}>
+        <Command
+          filter={(idxStr, query) =>
+            props
+              .intoQueryable(props.items.at(parseInt(idxStr))!)
+              .toLowerCase()
+              .includes(query.toLowerCase())
+              ? 1
+              : 0
+          }
+        >
           <CommandInput placeholder="Search..." />
           <CommandEmpty>Nothing found.</CommandEmpty>
           <CommandGroup>

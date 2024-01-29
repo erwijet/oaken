@@ -2,9 +2,14 @@ import { api } from "@/lib/rpc";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/lib/ui/table";
 import { useQuery } from "@tanstack/react-query";
 import { TabControl } from "./HomePage";
+import { useGlobalState } from "@/lib/utils";
+import { Button } from "@/lib/ui/button";
 import { useNavigate } from "react-router";
 
 export function StandingsView() {
+  const [tierId] = useGlobalState("tierId");
+  const [leagueId] = useGlobalState("leagueId");
+
   const { data: game } = useQuery({
     queryKey: ["getGameState"],
     queryFn: () => api.query(["getGameState"]),
@@ -14,6 +19,7 @@ export function StandingsView() {
     enabled: !!game,
     queryKey: ["getStandings", game?.year ?? 0],
     queryFn: () => api.query(["getStandings", game!.year]),
+    select: (standings) => standings.filter((it) => it.leagueId == leagueId && it.tierId == tierId),
   });
 
   const nav = useNavigate();
@@ -27,6 +33,7 @@ export function StandingsView() {
       <div className="w-[calc(100%-2rem)] mx-4 border-px rounded-md shadow-lg">
         <Table>
           <TableHeader>
+            <TableHead>Pos.</TableHead>
             <TableHead className="w-[99%]">Team</TableHead>
             <TableHead>
               <abbr title="Wins">W</abbr>
@@ -51,13 +58,18 @@ export function StandingsView() {
             </TableHead>
           </TableHeader>
           <TableBody>
-            {standings?.map((each) => (
-              <TableRow>
-                <TableCell>{each.teamName}</TableCell>
+            {standings?.map((each, i) => (
+              <TableRow className="hover:bg-inherit">
+                <TableCell>{i + 1}.</TableCell>
+                <TableCell className="p-0">
+                  <Button variant={"link"} onClick={() => nav(`/team/${each.teamId}`)}>
+                    {each.teamName}
+                  </Button>
+                </TableCell>
                 <TableCell>{each.wins}</TableCell>
                 <TableCell>{each.losses}</TableCell>
                 <TableCell>{each.draws}</TableCell>
-                <TableCell>{each.winPercent.toFixed(3)}</TableCell>
+                <TableCell>{each.winPercent?.toFixed(3) ?? "-"}</TableCell>
                 <TableCell>{each.pointsFor}</TableCell>
                 <TableCell>{each.pointsAgainst}</TableCell>
                 <TableCell>{each.streak}</TableCell>

@@ -6,12 +6,15 @@ import { RouterProvider } from "react-router-dom";
 import "./index.css";
 import { router } from "./router";
 import { Invalidator } from "./Invalidator";
+import { PageLoader } from "@/PageLoader";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <QueryClientProvider client={new QueryClient()}>
       <Invalidator>
-        <RouterProvider router={router} />
+        <PageLoader>
+          <RouterProvider router={router} />
+        </PageLoader>
       </Invalidator>
     </QueryClientProvider>
   </React.StrictMode>,

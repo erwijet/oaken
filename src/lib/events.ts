@@ -1,9 +1,8 @@
 import { listen } from "@tauri-apps/api/event";
 import { useEffect } from "react";
+import { EmitMsg } from "@/lib/msg_bindings";
 
-type OakenEvent = "game_did_restart" | "week_did_advance";
-
-export function useEventHandler(evtId: OakenEvent, handler: () => void) {
+export function useEventHandler(evtId: EmitMsg, handler: () => void) {
   useEffect(() => {
     const unlisten = listen(evtId, () => {
       handler();

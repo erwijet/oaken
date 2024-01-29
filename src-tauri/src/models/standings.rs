@@ -5,10 +5,14 @@ use sqlx::prelude::*;
 
 use crate::{models::team::Team, shared::pool::get_pool};
 
+use super::tier::Tier;
+
 #[derive(Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Standing {
     pub team_id: i32,
+    pub league_id: i32,
+    pub tier_id: i32,
     pub team_name: String,
     pub wins: i32,
     pub losses: i32,
@@ -16,7 +20,7 @@ pub struct Standing {
     pub points_for: i32,
     pub points_against: i32,
     pub streak: i32,
-    pub win_percent: f64,
+    pub win_percent: Option<f64>,
 }
 
 #[derive(Deserialize, FromRow)]
@@ -52,8 +56,13 @@ impl Standing {
         "#).await;
 
         join_all(rows.into_iter().map(|row| async move {
+            let Team { tier_id, .. } = Team::get(&row.team_id).await;
+            let Tier { league_id, .. } = Tier::get(&tier_id).await;
+
             Standing {
                 team_id: row.team_id,
+                tier_id,
+                league_id,
                 points_for: row.points_for,
                 points_against: row.points_against,
                 team_name: row.team_name,
@@ -61,8 +70,10 @@ impl Standing {
                 draws: row.draws,
                 losses: row.losses,
                 streak: Team::get(&row.team_id).await.get_streak(year).await,
-                win_percent: ((row.wins as f64) + (0.5 * row.draws as f64))
-                    / (row.wins + row.draws + row.losses) as f64,
+                win_percent: Some(
+                    ((row.wins as f64) + (0.5 * row.draws as f64))
+                        / (row.wins + row.draws + row.losses) as f64,
+                ),
             }
         }))
         .await

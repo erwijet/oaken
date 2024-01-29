@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use tap::Pipe;
 
-use crate::{shared::pool::get_pool, sql_args, util::LastInsertRowId};
+use crate::{shared::pool::get_pool, sql_args};
 
 use super::{matchup::Matchup, team::Team, tier};
 
@@ -14,8 +14,8 @@ use super::{matchup::Matchup, team::Team, tier};
 pub struct Schedule {
     pub id: i32,
     pub year: i32,
-    tier_id: i32,
-    league_id: i32,
+    pub tier_id: i32,
+    pub league_id: i32,
     pub matchups: Vec<Matchup>,
 }
 

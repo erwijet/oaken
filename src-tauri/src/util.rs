@@ -1,5 +1,6 @@
-use std::ops::Deref;
+use std::{ops::Deref, sync::OnceLock};
 
+use rand::rngs::ThreadRng;
 use tauri::api::dialog;
 
 use crate::shared::pool::get_pool;
@@ -33,29 +34,6 @@ pub trait PresentError<T> {
 impl<T, E: std::error::Error> PresentError<T> for Result<T, E> {
     fn present_err(self) -> Result<T, ()> {
         self.map_err(map_err_into_dialog)
-    }
-}
-
-#[derive(sqlx::FromRow)]
-pub struct LastInsertRowId {
-    #[sqlx(rename = "last_insert_rowid()")]
-    pub id: i32,
-}
-
-impl Deref for LastInsertRowId {
-    type Target = i32;
-    fn deref(&self) -> &Self::Target {
-        &self.id
-    }
-}
-
-impl LastInsertRowId {
-    pub async fn get() -> Self {
-        let pool = get_pool();
-        sqlx::query_as("SELECT last_insert_rowid();")
-            .fetch_one(pool.deref())
-            .await
-            .unwrap()
     }
 }
 
